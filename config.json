@@ -1,0 +1,32 @@
+{
+   "api_auth": {
+      "auth_key": "",
+      "auth_mail": "",
+      "initialize_time": ""
+   },
+  "zone": {
+      "zone_id": ""
+   },
+  "id": {
+      "dns_a_record_id": "",
+      "dns_a_domain": "",
+      "dns_aaaa_record_id": "",
+      "dns_aaaa_domain": "",
+      "proxy_able": true,
+      "proxy_mode": true
+   },
+   "ip_address": {
+      "dns_a_address": "",
+      "dns_aaaa_address": ""
+  },
+  "cname": {
+      "dns_cname_record_id": "",
+      "zone_name": "",
+      "zone_target": ""
+   },
+  "last_update_time": {
+      "ddns_4_update_time": "",
+      "ddns_6_update_time": "",
+      "canme_update_time": ""
+   }
+}
