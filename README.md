@@ -6,17 +6,19 @@
 
 A small python module for request / update DNS Record at CloudFlare DNS server.
 
-For more information on the CloudFlare API please take a look at [Cloudflare API Documentation](https://api.cloudflare.com/).
-
 ## Contents
-- [CloudFlare Dynamic DNS](#cloudflare-dynamic-dns)
+- [CloudFlare-Dynamic-DNS](#cloudflare-dynamic-dns)
+  * [Contents](#contents)
   * [Usage](#usage)
-    + [Data request](#data-request)
+    + [Scheduling](#scheduling)
+    + [CloudFlare API](#cloudflare-api)
     + [Request or update DNS record](#request-or-update-dns-record)
+    + [Update DNS record](#update-dns-record)
     + [Update CNAME record](#update-cname-record)
+  * [Configuration file](#configuration-file)
   * [Python module](#python-module)
   * [Function](#function)
-    + [Verify API Token](#verify-cloudflare-api-token)
+    + [Verify CloudFlare API Token](#verify-cloudflare-api-token)
     + [Print All DNS records](#print-all-dns-records)
     + [Asking IPv4 address](#asking-ipv4-address)
     + [Request DNS A record](#request-dns-a-record)
@@ -25,56 +27,174 @@ For more information on the CloudFlare API please take a look at [Cloudflare API
     + [Request DNS AAAA record](#request-dns-aaaa-record)
     + [Update DNS AAAA record](#update-dns-aaaa-record)
     + [Refresh CNAME record](#refresh-cname-record)
+    + [Error handling](#error-handling)
   * [Dependencies](#dependencies)
     + [Python version](#python-version)
     + [Python module](#python-module-1)
   * [License](#license)
   * [Resources](#resources)
     + [My Gist](#my-gist)
-    + [CloudFlare API](#cloudflare-api)
+    + [CloudFlare API](#cloudflare-api-1)
     + [IP address request API](#ip-address-request-api)
 
 ## Usage
+### Scheduling
+- Schedule  
+You can using schedule module for job scheduling, you can found the scheduling setting at scripts examples.  
+If you want to using schedule module for job scheduling, [install this module](https://pypi.org/project/schedule/) are needed.
+```python
+import schedule
+
+#Execute setting
+schedule.every(30).minutes.do( #Something Package as function)
+#Loop
+try:
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+#Crtl+C to exit
+except KeyboardInterrupt:
+  print("GoodBye ...")
+```
+
+- Crontab  
+Alternatively, automatically execute via cron.
+```shell
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name command to be executed
+17 *	* * *	root    cd / && run-parts --report /etc/cron.hourly
+25 6	* * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6	* * 7	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6	1 * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+0 9-22/1 * * *  pi python /home/pi/python_script/ddns_ipv4.py
+0 */1   * * *   pi python /home/pi/python_script/ddns_ipv6.py
+#
+```
+### CloudFlare API
 For using this module, you need to have a domain name, and choice CloudFlare as the DNS hosting services.
 
-Logged in the Cloudflare Dashboard, and go to User Profile, choice [API Tokens](https://dash.cloudflare.com/profile/api-tokens), generated API Token. **Once successfully generated, the token secret is only shown once**, make sure to copy the secret to a secure place. 
+Logged in the Cloudflare Dashboard, and go to User Profile, choice [API Tokens](https://dash.cloudflare.com/profile/api-tokens), generated API Token. ```Once successfully generated, the token secret is only shown once```, make sure to copy the secret to a secure place.
 
-### Data request
-This function needs some configuration which is necessary.
-```python
-auth_key = "Bearer ••••••••••••••••••••••••••••••••••••••••"
-auth_mail = "example@gmail.com"
-zone_id = "••••••••••••••••••••••••••••••••••••"
+First time running this module, it will asking the basic authorization data.
+```text
+Configuration not found, please enter basic authorization data.
+
+Please enter the auth_key: Bearer ••••••••••••••••••••••••••••••••••••••••
+Please enter the auth_mail: example@gmail.com
+Please enter the zone ID: ••••••••••••••••••••••••••••••••••••
+Authorization data saved successfully.
 ```
-- **auth_key** is the API Token you get
-- **auth_mail** is the email address associated with your account
-- **zone_id** is the 36 characters ID associated the domain name you want to control, it can be found in [Cloudflare Dashboard](https://dash.cloudflare.com/).
-
+- ```auth_key``` is the 40 characters API Token has ```Bearer``` header.
+- ```auth_mail``` is the email address associated with your account
+- ```zone ID``` is the 36 characters ID associated the domain you want to control.
 ### Request or update DNS record
-This function needs some configuration which is necessary.
-```python
-id_ipv4 = "••••••••••••••••••••••••••••••••"
-id_ipv6 = "••••••••••••••••••••••••••••••••"
-
-proxy_able = True
-proxy_mode = False
+DNS record ID is necessary, Configure store at ```config.json```.
+```json
+"id": {
+  "dns_a_record_id": "••••••••••••••••••••••••••••••••",
+  "dns_a_domain": "ipv4.example.com",
+  "dns_aaaa_record_id": "••••••••••••••••••••••••••••••••",
+  "dns_aaaa_domain": "ipv6.example.com",
+  "proxy_able": true,
+  "proxy_mode": true
+  }
 ```
-- **id_ipv4** is the 32 characters ID which associated with domain(or subdomain) DNS record.
-- **id_ipv6** is the 32 characters ID which associated with domain(or subdomain) DNS record.
-- **proxy_able** is the capability of CloudFlare proxy, depend on CloudFlare default.
-- **proxy_mode** is the setting of CloudFlare proxy Enable / Disable.
+- ```dns_a_record_id``` is the 32 characters ID which associated with domain DNS A record.
+- ```dns_a_domain``` is the domain name associated with domain DNS A record.
+- ```dns_aaaa_record_id``` is the 32 characters ID which associated with domain DNS AAAA record.
+- ```dns_aaaa_domain``` is the domain name associated with domain DNS AAAA record.
+- ```proxy_able``` is the capability of CloudFlare proxy, depend on CloudFlare default.
+- ```proxy_mode``` is the setting of CloudFlare proxy Enable / Disable.
+### Update DNS record
+IP address is necessary, input as ```update_address_ipv4``` or ```update_address_ipv6```.
+```python
+import cloudflare_dynamic_dns
 
-TTL, Time to live for DNS record, default Value is **automatic (1)**
+#Update IPv4
+cloudflare_dynamic_dns.update_record_ipv4(update_address_ipv4)
+#Update IPv6
+cloudflare_dynamic_dns.update_record_ipv6(update_address_ipv6)
+```
+Updated IP address will store at ```config.json```.
+```json
+"ip_address": {
+  "dns_a_address": "1.1.1.1",
+  "dns_aaaa_address": "2606:4700:4700::1111"
+  }
+```
+- ```TTL```, Time to live for DNS record, default Value is ```automatic (1)```
 
 ### Update CNAME record
+CNAME record ID is necessary, Configure store at ```config.json```.
 ```python
-cname_id = "••••••••••••••••••••••••••••••••"
-zone_name = "_••••••••••••••••••••••••••••••••.ipv4.example.com"
-zone_content = "••••••••••••••••••••••••••••••••.••••••••••••••••••••••••••••••••.•••••••••••••••.example.com"
+import cloudflare_dynamic_dns
+
+#Asking payload
+canme_name = input("Please enter the NAME: ")
+canme_content = input("Please enter the VALUE: ")
+#Update
+refresh_canme = cloudflare_dynamic_dns.update_cname(canme_name, canme_content)
 ```
-- **cname_id** is the 32 characters ID which associated with CNAME record.
-- **zone_name** is the CNAME name.
-- **zone_content** si the CNAME Target.
+- ```canme_name``` is the CNAME name.
+- ```canme_content``` si the CNAME Target.
+
+Updated CNAME record will store at ```config.json```.
+```json
+"cname": {
+  "dns_cname_record_id": "••••••••••••••••••••••••••••••••",
+  "zone_name": "subdomain.example.com",
+  "zone_target": "target.example.com"
+  }
+```
+- ```dns_cname_record_id``` is the 32 characters ID which associated with CNAME record.
+
+## Configuration file
+This module store configuration as JSON format file, named ```config.json```.
+
+You can editing the clean copy, which looks like this:
+```json
+{
+   "api_auth": {
+      "auth_key": "",
+      "auth_mail": "",
+      "initialize_time": ""
+   },
+  "zone": {
+      "zone_id": ""
+   },
+  "id": {
+      "dns_a_record_id": "",
+      "dns_a_domain": "",
+      "dns_aaaa_record_id": "",
+      "dns_aaaa_domain": "",
+      "proxy_able": true,
+      "proxy_mode": true
+   },
+   "ip_address": {
+      "dns_a_address": "",
+      "dns_aaaa_address": ""
+  },
+  "cname": {
+      "dns_cname_record_id": "",
+      "zone_name": "",
+      "zone_target": ""
+   },
+  "last_update_time": {
+      "ddns_4_update_time": "",
+      "ddns_6_update_time": "",
+      "canme_update_time": ""
+   }
+}
+```
 
 ## Python module
 - Import the module
@@ -84,7 +204,6 @@ import cloudflare_dynamic_dns
 ```python
 import cloudflare_dynamic_dns as cloudflare
 ```
-
 - Alternatively, you can import the function independent
 ```python
 from cloudflare_dynamic_dns import verify
@@ -92,284 +211,180 @@ from cloudflare_dynamic_dns import verify
 
 ## Function
 ### Verify CloudFlare API Token
-```python
-import json
-from cloudflare_dynamic_dns import verify
-
-ststus = verify(auth_key, auth_mail)
-
-if ststus is None:
-    print("Error Occurred")
-elif type(ststus) is int:
-    print("Error Occurred")
-elif type(ststus) is str:
-    print(ststus)
-```
-If the API Token activated successfully, the result will print as ```string```.
+Refer to ```verify.py```.  
+It will print the verify result as string:
 ```text
-active
+The authorize status is: active
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+Otherwise it will print:
+```text
+CloudFlare API connect timeout occurred, or request not success.
+```
+```text
+Error occurred, please check the error.log file.
+```
 ### Print All DNS records
-```python
-import json
-from cloudflare_dynamic_dns import all_data
-
-dns_data = all_data(auth_key, auth_mail, zone_id)
-
-if dns_data is None:
-    print("Error Occurred")
-elif type(dns_data) is int:
-    print("Error Occurred")
-elif type(dns_data) is dict:
-    with open("cloudflare_dns_data.json", "w", encoding='utf-8') as f:
-        json.dump(dns_data, f, ensure_ascii=False, indent=4)
-```
-If the request send successfully, the result will print as ```dictionary```. it can storage as a JSON data file, which named ```cloudflare_dns_data.json```.
-
-You can find the 32 characters ID which associated the individual DNS record, which above zone_id. For example:
+Refer to ```dns_record_asking.py```.  
+It will save the result as JSON file and print the messages:
 ```text
-{'result': [{'id': '••••••••••••••••••••••••••••••••••••',
-   'zone_id': '••••••••••••••••••••••••••••••••••••',
-   'zone_name': 'example.com',
-   'name': 'example.com',
-   'type': 'A',
-   'content': '127.0.0.1',
-   'proxiable': True,
-   'proxied': True,
-   'ttl': 1,
-   'locked': False,
-   'meta': {'auto_added': False,
-    'managed_by_apps': False,
-    'managed_by_argo_tunnel': False,
-    'source': 'primary'},
-   'created_on': '2020-08-24T03:30:28.114514Z',
-   'modified_on': '2020-08-24T03:30:28.114514Z'}],
- 'success': True,
- 'errors': [],
- 'messages': [],
- 'result_info': {'page': 1,
-  'per_page': 20,
-  'count': 1,
-  'total_count': 1,
-  'total_pages': 1}}
+Successfully get data form CloudFlare, saving to JSON file ....
+Data storage at 'cloudflare_dns_data.json'.
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+Otherwise it will print:
+```text
+CloudFlare API connect timeout occurred, or request not success.
+```
+```text
+Error occurred, please check the error.log file.
+```
 ### Asking IPv4 address
 ```python
-from cloudflare_dynamic_dns import ipv4_check()
+import cloudflare_dynamic_dns
 
-local_ipv4 = ipv4_check()
-
-if local_ipv4 is None:
-  print("Error Occurred")
-elif type(local_ipv4) is int:
-  print("Error Occurred")
-elif type(local_ipv4) is str:
-  print(local_ipv4)
+#Asking newest IP address
+ipv4_newest = cloudflare_dynamic_dns.get_ipv4()
+#Check asking result
+if type(ipv4_newest) is bool:
+    if ipv4_newest is True:
+        print("CloudFlare API connect timeout occurred, or request not success.")
+    elif ipv4_newest is False:
+        print("Error occurred, please check the error.log file.")
+elif type(ipv4_newest) is str:
+  print(ipv4_newest)
 ```
-If the request send successfully, the result will print as ```string```.
+If successfully get IP address, it will print
 ```text
-192.168.0.1
+1.1.1.1
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+If error occurred, it will return ```Boolean``` as the result.
 ### Request DNS A record
 ```python
-from cloudflare_dynamic_dns import ask_record_4
-id_ipv4 = "••••••••••••••••••••••••••••••••"
+import cloudflare_dynamic_dns
 
-record_a_ststus = ask_record_4(auth_key, auth_mail, zone_id, id_ipv4)
-
-if record_a_ststus is None:
-  print("Error Occurred")
-elif type(record_a_ststus) is int:
-  print("Error Occurred")
-elif type(record_a_ststus) is str:
-  print(record_a_ststus)
+#Get IP address recording in CloudFlare
+ipv4_origin = cloudflare_dynamic_dns.database_record_ipv4()
+#Check asking result
+if type(ipv4_origin) is bool:
+    if ipv4_origin is True:
+        print("CloudFlare API connect timeout occurred, or request not success.")
+    elif ipv4_origin is False:
+        print("Error occurred, please check the error.log file.")
+elif type(ipv4_origin) is str:
+  print(ipv4_origin)
 ```
-If the request send successfully, the result will print as ```string```.
+If successfully get DNS A record, it will print
 ```text
-192.168.0.1
+1.1.1.1
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+If error occurred, it will return ```Boolean``` as the result.
 ### Update DNS A record
-```python
-from cloudflare_dynamic_dns import update_record_4
-id_ipv4 = "••••••••••••••••••••••••••••••••"
-domain_4 = "ipv4.example.com"
-address_4 = "192.168.0.1"
-
-update_a = update_record_4(auth_key, auth_mail, zone_id, id_ipv4, domain_4, address_4, proxy_able, proxy_mode)
-
-if update_a is None:
-  print("Error Occurred")
-elif type(update_a) is int:
-  print("Error Occurred")
-elif type(update_a) is dict:
-  print(update_a)
-```
-- **domain_4** is the domain(or subdomain) you want to update.
-- **address_4** is the IP address you want to update.
-
-If the request send successfully, the result will print as ```dictionary```, which can storage as a JSON Format file.
+Refer to ```ddns_ipv4.py```.  
+It will print the messages if no need a refresh:
 ```text
-{'result': {'id': '••••••••••••••••••••••••••••••••',
-  'zone_id': '••••••••••••••••••••••••••••••••',
-  'zone_name': 'example.com',
-  'name': 'ipv4.example.com',
-  'type': 'A',
-  'content': '192.168.0.1',
-  'proxiable': True,
-  'proxied': False,
-  'ttl': 1,
-  'locked': False,
-  'meta': {'auto_added': False,
-   'managed_by_apps': False,
-   'managed_by_argo_tunnel': False,
-   'source': 'primary'},
-  'created_on': '2021-01-18T14:35:03.341602Z',
-  'modified_on': '2021-01-18T14:35:03.341602Z'},
- 'success': True,
- 'errors': [],
- 'messages': []}
+IP address is same as DNS record, update is not necessary.
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+Otherwise it will sending update request and print result:
+```text
+The respon is: True
+```
+If error occurred, it will print:
+```text
+CloudFlare API connect timeout occurred, or request not success.
+```
+```text
+Error occurred, please check the error.log file.
+```
 ### Asking IPv6 address
 ```python
-from cloudflare_dynamic_dns import ipv6_check()
+import cloudflare_dynamic_dns
 
-local_ipv6 = ipv6_check()
-
-if local_ipv6 is None:
-  print("Error Occurred")
-elif type(local_ipv6) is int:
-  print("Error Occurred")
-elif type(local_ipv6) is str:
-  print(local_ipv6)
+#Asking newest IP address
+ipv6_newest = cloudflare_dynamic_dns.get_ipv6()
+#Check asking result
+if type(ipv6_newest) is bool:
+    if ipv6_newest is True:
+        print("CloudFlare API connect timeout occurred, or request not success.")
+    elif ipv6_newest is False:
+        print("Error occurred, please check the error.log file.")
+elif type(ipv6_newest) is str:
+  print(ipv6_newest)
 ```
-If the request send successfully, the result will print as ```string```.
+If successfully get IP address, it will print
 ```text
-2001:0db8:85a3:0000:0000:8a2e:0370:7334
+2606:4700:4700::1111
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+If error occurred, it will return ```Boolean``` as the result.
 ### Request DNS AAAA record
 ```python
-from cloudflare_dynamic_dns import ask_record_6
-id_ipv6 = "••••••••••••••••••••••••••••••••"
+import cloudflare_dynamic_dns
 
-record_aaaa_ststus = ask_record_6(auth_key, auth_mail, zone_id, id_ipv6)
-
-if record_aaaa_ststus is None:
-  print("Error Occurred")
-elif type(record_aaaa_ststus) is int:
-  print("Error Occurred")
-elif type(record_aaaa_ststus) is str:
-  print(record_aaaa_ststus)
+#Get IP address recording in CloudFlare
+ipv6_origin = cloudflare_dynamic_dns.database_record_ipv6()
+#Check asking result
+if type(ipv6_origin) is bool:
+    if ipv6_origin is True:
+        print("CloudFlare API connect timeout occurred, or request not success.")
+    elif ipv6_origin is False:
+        print("Error occurred, please check the error.log file.")
+elif type(ipv6_origin) is str:
+  print(ipv6_origin)
 ```
-If the request send successfully, the result will print as ```string```.
+If successfully get DNS AAAA record, it will print
 ```text
-2001:0db8:85a3:0000:0000:8a2e:0370:7334
+2606:4700:4700::1111
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+If error occurred, it will return ```Boolean``` as the result.
 ### Update DNS AAAA record
-```python
-from cloudflare_dynamic_dns import update_record_6
-id_ipv6 = "••••••••••••••••••••••••••••••••"
-domain_6 = "ipv6.example.com"
-address_6 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
-
-update_aaaa = update_record_6(auth_key, auth_mail, zone_id, id_ipv6, domain_6, address_6, proxy_able, proxy_mode)
-
-if update_aaaa is None:
-  print("Error Occurred")
-elif type(update_aaaa) is int:
-  print("Error Occurred")
-elif type(update_aaaa) is dict:
-  print(update_aaaa)
-```
-- **domain_6** is the domain(or subdomain) you want to update.
-- **address_6** is the IP address you want to update.
-
-If the request send successfully, the result will print as ```dictionary```, which can storage as a JSON Format file.
+Refer to ```ddns_ipv6.py```.  
+It will print the messages if no need a refresh:
 ```text
-{'result': {'id': '••••••••••••••••••••••••••••••••',
-  'zone_id': '••••••••••••••••••••••••••••••••',
-  'zone_name': 'example.com',
-  'name': 'ipv6.example.com',
-  'type': 'AAAA',
-  'content': '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
-  'proxiable': True,
-  'proxied': False,
-  'ttl': 1,
-  'locked': False,
-  'meta': {'auto_added': False,
-   'managed_by_apps': False,
-   'managed_by_argo_tunnel': False,
-   'source': 'primary'},
-  'created_on': '2021-01-18T14:35:04.627124Z',
-  'modified_on': '2021-01-18T14:35:04.627124Z'},
- 'success': True,
- 'errors': [],
- 'messages': []}
+IP address is same as DNS record, update is not necessary.
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
-
+Otherwise it will sending update request and print result:
+```text
+The respon is: True
+```
+If error occurred, it will print:
+```text
+CloudFlare API connect timeout occurred, or request not success.
+```
+```text
+Error occurred, please check the error.log file.
+```
 ### Refresh CNAME record
+Refer to ```cname_update.py```.  
 ```python
-from cloudflare_dynamic_dns import canme_refresh
-cname_id = "••••••••••••••••••••••••••••••••"
-zone_name = "_••••••••••••••••••••••••••••••••.example.com"
-zone_content = "••••••••••••••••••••••••••••••••.••••••••••••••••••••••••••••••••.•••••••••••••••.example.com"
+import cloudflare_dynamic_dns
 
-cname_status = canme_refresh(auth_key, auth_mail, zone_id, cname_id, zone_name, zone_content)
-
-if cname_status is None:
-  print("Error Occurred")
-elif type(cname_status) is int:
-  print("Error Occurred")
-elif type(cname_status) is dict:
-  print(cname_status)
+#Asking payload
+canme_name = input("Please enter the NAME: ")
+canme_content = input("Please enter the VALUE: ")
+#Update
+refresh_canme = cloudflare_dynamic_dns.update_cname(canme_name, canme_content)
 ```
-If the request send successfully, the result will print as ```dictionary```, which can storage as a JSON Format file.
+It will print the messages if update request successfully sending:
 ```text
-{'result': {'id': '••••••••••••••••••••••••••••••••',
-  'zone_id': '••••••••••••••••••••••••••••••••',
-  'zone_name': 'example.com',
-  'name': '_••••••••••••••••••••••••••••••••.example.com',
-  'type': 'CNAME',
-  'content': '••••••••••••••••••••••••••••••••.••••••••••••••••••••••••••••••••.•••••••••••••••.example.com',
-  'proxiable': False,
-  'proxied': False,
-  'ttl': 1,
-  'locked': False,
-  'meta': {'auto_added': False,
-   'managed_by_apps': False,
-   'managed_by_argo_tunnel': False,
-   'managed_cname': True,
-   'source': 'primary'},
-  'created_on': '2021-01-21T09:40:46.13279Z',
-  'modified_on': '2021-01-21T09:40:46.13279Z'},
- 'success': True,
- 'errors': [],
- 'messages': []}
+The respon is: True
 ```
-If error occurred, it will return ```None``` and saving logs to a file, or return HTTP status code as ```integer```.
+If error occurred, it will print:
+```text
+CloudFlare API connect timeout occurred, or request not success.
+```
+```text
+Error occurred, please check the error.log file.
+```
+### Error handling 
+Error message store at ```error.log```
 
 ## Dependencies
 ### Python version
 - Python 3.6 or above
-
 ### Python module
 - json
+- getpass
 - logging
 - requests
+- datetime
 
 ## License
 General Public License -3.0
@@ -379,10 +394,8 @@ General Public License -3.0
 - [Verify API Token for CloudFlare API](https://gist.github.com/Suzhou65/cf63b430bfc44c03a3b1fbe2af10d6a9)
 - [Get DNS record from CloudFlare API](https://gist.github.com/Suzhou65/8b9e5e5360f9c0a363e82038bb0d29b8)
 - [Get IPv4, IPv6 DNS record from CloudFlare API](https://gist.github.com/Suzhou65/3488991186cbf6749b20dfc2ff5dea79)
-
 ### CloudFlare API
 - [Cloudflare API v4 Documentation](https://api.cloudflare.com/)
-
 ### IP address request API
 - [ipv6-test.com](https://ipv6-test.com/api/)
 - [ipify](https://www.ipify.org/)
