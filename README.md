@@ -96,6 +96,8 @@ Authorization data saved successfully.
 - ```auth_key``` is the 40 characters API Token has ```Bearer``` header.
 - ```auth_mail``` is the email address associated with your account
 - ```zone ID``` is the 36 characters ID associated the domain you want to control.
+
+If you fill in with correct configure store at ```config.json```, it will skip initialization step when first time running.
 ### Request or update DNS record
 DNS record ID is necessary, Configure store at ```config.json```.
 ```json
@@ -195,6 +197,7 @@ You can editing the clean copy, which looks like this:
    }
 }
 ```
+If you fill in with correct configure, it will skip initialization step.
 
 ## Python module
 - Import the module
