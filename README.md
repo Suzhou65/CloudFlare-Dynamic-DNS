@@ -16,7 +16,7 @@ A small python module for request / update DNS Record at CloudFlare DNS server.
     + [Update DNS record](#update-dns-record)
     + [Update CNAME record](#update-cname-record)
   * [Configuration file](#configuration-file)
-  * [Python module](#python-module)
+  * [Import module](#import-module)
   * [Function](#function)
     + [Verify CloudFlare API Token](#verify-cloudflare-api-token)
     + [Print All DNS records](#print-all-dns-records)
@@ -199,7 +199,7 @@ You can editing the clean copy, which looks like this:
 ```
 If you fill in with correct configure, it will skip initialization step.
 
-## Python module
+## Import module
 - Import the module
 ```python
 import cloudflare_dynamic_dns
