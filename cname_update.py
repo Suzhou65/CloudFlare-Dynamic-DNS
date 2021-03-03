@@ -1,15 +1,15 @@
-#coding=utf-8
+# coding=utf-8
 import sys
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import update_cname
 
-#Asking payload
+# Asking payload
 canme_name = input("Please enter the NAME: ")
 canme_content = input("Please enter the VALUE: ")
 
-#Update
-refresh_canme = cloudflare_dynamic_dns.update_cname(canme_name, canme_content)
+# Update
+refresh_canme = update_cname(canme_name, canme_content)
 
-#Check result
+# Check result
 if type(refresh_canme) is bool:
     if refresh_canme is True:
         print("CloudFlare API connect timeout occurred, or request not success.")

@@ -1,23 +1,23 @@
-#coding=utf-8
+# coding=utf-8
 import sys
 import cloudflare_dynamic_dns
 
-#Asking newest IP address
+# Asking newest IP address
 ipv6_newest = cloudflare_dynamic_dns.get_ipv6()
-#Get IP address recording in CloudFlare
-ipv6_origin = cloudflare_dynamic_dns.database_record_ipv6()
+# Get IP address recording in CloudFlare
+ipv6_origin = cloudflare_dynamic_dns.database_record_ipv6(fully_output=False)
 
-#Check asking result
+# Check asking result
 if type(ipv6_newest) is bool:
     if ipv6_newest is True:
         print("CloudFlare API connect timeout occurred, or request not success.")
     elif ipv6_newest is False:
         print("Error occurred, please check the error.log file.")
-#Compare
+# Compare
 elif type(ipv6_newest) is str:
     if ipv6_newest == ipv6_origin:
         print ("IP address is same as DNS record, update is not necessary.")
-    #If needed to update
+    # If needed to update
     else:
         update_address_ipv6 = ipv6_newest
         refresh = cloudflare_dynamic_dns.update_record_ipv6(update_address_ipv6)

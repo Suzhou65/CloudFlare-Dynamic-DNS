@@ -45,21 +45,21 @@ If you want to using schedule module for job scheduling, [install this module](h
 ```python
 import schedule
 
-#Execute setting
-schedule.every(30).minutes.do( #Something Package as function)
-#Loop
+# Execute setting
+schedule.every(30).minutes.do( Something_Package )
+# Loop
 try:
     while True:
         schedule.run_pending()
         time.sleep(1)
-#Crtl+C to exit
+# Crtl+C to exit
 except KeyboardInterrupt:
   print("GoodBye ...")
 ```
 
 - Crontab  
 Alternatively, automatically execute via cron.
-```shell
+```conf
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
@@ -119,12 +119,16 @@ DNS record ID is necessary, Configure store at ```config.json```.
 ### Update DNS record
 IP address is necessary, input as ```update_address_ipv4``` or ```update_address_ipv6```.
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import update_record_ipv4
 
-#Update IPv4
-cloudflare_dynamic_dns.update_record_ipv4(update_address_ipv4)
-#Update IPv6
-cloudflare_dynamic_dns.update_record_ipv6(update_address_ipv6)
+# Update IPv4
+update_record_ipv4(update_address_ipv4)
+```
+```python
+from cloudflare_dynamic_dns import update_record_ipv6
+
+# Update IPv6
+update_record_ipv6(update_address_ipv6)
 ```
 Updated IP address will store at ```config.json```.
 ```json
@@ -138,13 +142,13 @@ Updated IP address will store at ```config.json```.
 ### Update CNAME record
 CNAME record ID is necessary, Configure store at ```config.json```.
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import update_cname
 
-#Asking payload
+# Asking payload
 canme_name = input("Please enter the NAME: ")
 canme_content = input("Please enter the VALUE: ")
-#Update
-refresh_canme = cloudflare_dynamic_dns.update_cname(canme_name, canme_content)
+# Update
+refresh_canme = update_cname(canme_name, canme_content)
 ```
 - ```canme_name``` is the CNAME name.
 - ```canme_content``` si the CNAME Target.
@@ -205,7 +209,7 @@ If you fill in with correct configure, it will skip initialization step.
 import cloudflare_dynamic_dns
 ```
 ```python
-import cloudflare_dynamic_dns as cloudflare
+import cloudflare_dynamic_dns as ddns
 ```
 - Alternatively, you can import the function independent
 ```python
@@ -242,11 +246,11 @@ Error occurred, please check the error.log file.
 ```
 ### Asking IPv4 address
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import get_ipv4
 
-#Asking newest IP address
-ipv4_newest = cloudflare_dynamic_dns.get_ipv4()
-#Check asking result
+# Asking newest IP address
+ipv4_newest = get_ipv4()
+# Check asking result
 if type(ipv4_newest) is bool:
     if ipv4_newest is True:
         print("CloudFlare API connect timeout occurred, or request not success.")
@@ -262,16 +266,18 @@ If successfully get IP address, it will print
 If error occurred, it will return ```Boolean``` as the result.
 ### Request DNS A record
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import database_record_ipv4
 
-#Get IP address recording in CloudFlare
-ipv4_origin = cloudflare_dynamic_dns.database_record_ipv4()
-#Check asking result
+# Get IP address recording in CloudFlare
+ipv4_origin = database_record_ipv4(fully_output=False)
+# Check asking result
 if type(ipv4_origin) is bool:
     if ipv4_origin is True:
         print("CloudFlare API connect timeout occurred, or request not success.")
     elif ipv4_origin is False:
         print("Error occurred, please check the error.log file.")
+elif type(ipv4_origin) is dict:
+  print("Result output as dictionary.")
 elif type(ipv4_origin) is str:
   print(ipv4_origin)
 ```
@@ -299,11 +305,11 @@ Error occurred, please check the error.log file.
 ```
 ### Asking IPv6 address
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import get_ipv6
 
-#Asking newest IP address
-ipv6_newest = cloudflare_dynamic_dns.get_ipv6()
-#Check asking result
+# Asking newest IP address
+ipv6_newest = get_ipv6()
+# Check asking result
 if type(ipv6_newest) is bool:
     if ipv6_newest is True:
         print("CloudFlare API connect timeout occurred, or request not success.")
@@ -319,16 +325,18 @@ If successfully get IP address, it will print
 If error occurred, it will return ```Boolean``` as the result.
 ### Request DNS AAAA record
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import database_record_ipv6
 
-#Get IP address recording in CloudFlare
-ipv6_origin = cloudflare_dynamic_dns.database_record_ipv6()
-#Check asking result
+# Get IP address recording in CloudFlare
+ipv6_origin = database_record_ipv6(fully_output=False)
+# Check asking result
 if type(ipv6_origin) is bool:
     if ipv6_origin is True:
         print("CloudFlare API connect timeout occurred, or request not success.")
     elif ipv6_origin is False:
         print("Error occurred, please check the error.log file.")
+elif type(ipv6_origin) is dict:
+  print("Result output as dictionary.")
 elif type(ipv6_origin) is str:
   print(ipv6_origin)
 ```
@@ -357,13 +365,13 @@ Error occurred, please check the error.log file.
 ### Refresh CNAME record
 Refer to ```cname_update.py```.  
 ```python
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import update_cname
 
-#Asking payload
+# Asking payload
 canme_name = input("Please enter the NAME: ")
 canme_content = input("Please enter the VALUE: ")
-#Update
-refresh_canme = cloudflare_dynamic_dns.update_cname(canme_name, canme_content)
+# Update
+refresh_canme = update_cname(canme_name, canme_content)
 ```
 It will print the messages if update request successfully sending:
 ```text

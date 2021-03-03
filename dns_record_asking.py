@@ -1,12 +1,12 @@
-#coding=utf-8
+# coding=utf-8
 import sys
 import json
-import cloudflare_dynamic_dns
+from cloudflare_dynamic_dns import database_record
 
-#Get All DNS records
-database = cloudflare_dynamic_dns.database_record()
+# Get All DNS records
+database = database_record()
 
-#Check result
+# Check result
 if type(database) is bool:
     if database is True:
         print("CloudFlare API connect timeout occurred, or request not success.")
